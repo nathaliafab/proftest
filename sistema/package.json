@@ -11,15 +11,20 @@
     "test": "jest"
   },
   "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "drizzle-orm": "^0.39.0",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/jest": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@types/uuid": "^9.0.8",
+    "drizzle-kit": "^0.30.0",
     "jest": "latest",
     "jest-cucumber": "latest",
     "ts-jest": "latest",

@@ -9,6 +9,11 @@ export default function Home() {
             Go to Manage Questions
           </a>
         </li>
+        <li>
+          <a href="/tests" style={{ color: 'blue', textDecoration: 'underline' }}>
+            Go to Manage Tests
+          </a>
+        </li>
       </ul>
       <p>
         Try visiting the API route: <a href="/api/hello" style={{ color: 'blue' }}>/api/hello</a>

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Sistema',
+  title: 'Proftest',
   description: 'Next.js App inside Docker',
 }
 

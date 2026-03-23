@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { QuestionBank, Question, Answer } from '../../domain/QuestionBank';
+import { useState, useEffect } from 'react';
+import { Question, Answer } from '../../domain/QuestionBank';
 
 export default function ManageQuestionsPage() {
-  const [bank] = useState<QuestionBank>(new QuestionBank());
   const [questions, setQuestions] = useState<Question[]>([]);
   
   // Form State
@@ -12,8 +11,14 @@ export default function ManageQuestionsPage() {
   const [description, setDescription] = useState('');
   const [answers, setAnswers] = useState<Answer[]>([{ description: '', isCorrect: false }]);
 
-  const refreshQuestions = () => {
-    setQuestions([...bank.getQuestions()]);
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  const fetchQuestions = async () => {
+    const res = await fetch('/api/questions');
+    const data = await res.json();
+    setQuestions(data);
   };
 
   const handleAddAnswer = () => {
@@ -30,21 +35,27 @@ export default function ManageQuestionsPage() {
     setAnswers(newAnswers);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { description, answers };
+    
     if (editingId) {
-      bank.modifyQuestion(editingId, description, answers);
+      await fetch(`/api/questions/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       setEditingId(null);
     } else {
-      bank.addQuestion({
-        id: Date.now().toString(),
-        description,
-        answers: [...answers],
+      await fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
     }
     setDescription('');
     setAnswers([{ description: '', isCorrect: false }]);
-    refreshQuestions();
+    fetchQuestions();
   };
 
   const handleEdit = (q: Question) => {
@@ -53,9 +64,9 @@ export default function ManageQuestionsPage() {
     setAnswers(q.answers.map(a => ({ ...a })));
   };
 
-  const handleDelete = (id: string) => {
-    bank.removeQuestion(id);
-    refreshQuestions();
+  const handleDelete = async (id: string) => {
+    await fetch(`/api/questions/${id}`, { method: 'DELETE' });
+    fetchQuestions();
   };
 
   const handleCancelEdit = () => {
