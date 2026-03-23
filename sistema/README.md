@@ -1,6 +1,6 @@
-# Sistema
+# ProfTest - Multiple Choice Test Manager
 
-A simple Next.js web application with TypeScript and API Routes, configured to run entirely within Docker. There is no need to run `npm install` or keep a local Node.js environment installed.
+A Next.js web application with TypeScript and API Routes, configured to run entirely within Docker. It is designed to help professors create and correct tests for their students.
 
 ## Prerequisites
 - Docker

@@ -1,5 +1,6 @@
 {
-  "name": "sistema",
+  "name": "proftest",
+  "description": "A platform to help professors create and correct tests for their students.",
   "version": "0.1.0",
   "private": true,
   "scripts": {
