@@ -9,6 +9,14 @@ export default function ManageTestsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [pdfTestId, setPdfTestId] = useState<string>('');
+  const [pdfAmount, setPdfAmount] = useState(1);
+  const [pdfClassTitle, setPdfClassTitle] = useState('');
+  const [pdfProfessorName, setPdfProfessorName] = useState('');
+  const [pdfDate, setPdfDate] = useState('');
+
   const [title, setTitle] = useState('');
   const [selectedQuestions, setSelectedQuestions] = useState<TestQuestionConfig[]>([]);
 
@@ -77,6 +85,32 @@ export default function ManageTestsPage() {
   const handleDelete = async (id: string) => {
     await fetch(`/api/tests/${id}`, { method: 'DELETE' });
     fetchTests();
+  };
+
+  const openPdfModal = (testId: string) => {
+    setPdfTestId(testId);
+    setPdfAmount(1);
+    setPdfClassTitle('');
+    setPdfProfessorName('');
+    setPdfDate('');
+    setIsPdfModalOpen(true);
+  };
+
+  const closePdfModal = () => {
+    setIsPdfModalOpen(false);
+    setPdfTestId('');
+  };
+
+  const handleGeneratePdf = () => {
+    const query = new URLSearchParams({
+      amount: pdfAmount.toString(),
+      classTitle: pdfClassTitle,
+      professorName: pdfProfessorName,
+      date: pdfDate
+    }).toString();
+    
+    window.location.href = `/api/tests/${pdfTestId}/generate?${query}`;
+    closePdfModal();
   };
 
   const handleCancelEdit = () => {
@@ -172,6 +206,7 @@ export default function ManageTestsPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                   <h3 style={{ margin: 0 }}>{test.title}</h3>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => openPdfModal(test.id)} style={{ padding: '0.25rem 0.5rem', cursor: 'pointer', background: '#e3f2fd', border: '1px solid #bbdefb', color: '#1976d2' }}>Generate PDFs</button>
                     <button onClick={() => handleEdit(test)} style={{ padding: '0.25rem 0.5rem', cursor: 'pointer' }}>Edit</button>
                     <button onClick={() => handleDelete(test.id)} style={{ padding: '0.25rem 0.5rem', cursor: 'pointer', background: '#ffebee', border: '1px solid #ffcdd2', color: 'red' }}>Delete</button>
                   </div>
@@ -213,6 +248,39 @@ export default function ManageTestsPage() {
           </ul>
         )}
       </section>
+
+      {isPdfModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
+            <h3 style={{ marginTop: 0 }}>Generate PDFs</h3>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Number of PDFs (unique variations):</label><br />
+              <input type="number" min="1" value={pdfAmount} onChange={(e) => setPdfAmount(Number(e.target.value))} style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
+            </div>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Class Title:</label><br />
+              <input type="text" value={pdfClassTitle} onChange={(e) => setPdfClassTitle(e.target.value)} placeholder="e.g. Introduction to Programming" style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Professor Name:</label><br />
+              <input type="text" value={pdfProfessorName} onChange={(e) => setPdfProfessorName(e.target.value)} placeholder="e.g. Prof. Alan Turing" style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Date:</label><br />
+              <input type="date" value={pdfDate} onChange={(e) => setPdfDate(e.target.value)} style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+              <button onClick={closePdfModal} style={{ padding: '0.5rem 1rem', cursor: 'pointer', background: '#e0e0e0', border: 'none', borderRadius: '4px' }}>Cancel</button>
+              <button onClick={handleGeneratePdf} style={{ padding: '0.5rem 1rem', cursor: 'pointer', background: '#2196f3', color: 'white', border: 'none', borderRadius: '4px' }}>Download Zip</button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

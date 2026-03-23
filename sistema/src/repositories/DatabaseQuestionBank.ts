@@ -53,6 +53,17 @@ export class DatabaseQuestionBank {
     };
   }
 
+  async getQuestionById(id: string): Promise<Question | undefined> {
+    const db = await getDb();
+    const [row] = await db.select().from(questionsTable).where(eq(questionsTable.id, id));
+    if (!row) return undefined;
+    return {
+      id: row.id,
+      description: row.description,
+      answers: JSON.parse(row.answers)
+    };
+  }
+
   async clear(): Promise<void> {
     await clearDb();
   }
