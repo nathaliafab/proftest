@@ -1,23 +1,40 @@
+"use client";
+
+import Link from 'next/link';
+import { ListTodo, FileText } from 'lucide-react';
+import styles from './page.module.css';
+
 export default function Home() {
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Welcome to ProfTest</h1>
-      <p>This Next.js app with TypeScript is running exclusively inside Docker!</p>
-      <ul>
-        <li>
-          <a href="/questions" style={{ color: 'blue', textDecoration: 'underline' }}>
-            Go to Manage Questions
-          </a>
-        </li>
-        <li>
-          <a href="/tests" style={{ color: 'blue', textDecoration: 'underline' }}>
-            Go to Manage Tests
-          </a>
-        </li>
-      </ul>
-      <p>
-        Try visiting the API route: <a href="/api/hello" style={{ color: 'blue' }}>/api/hello</a>
-      </p>
-    </main>
+    <div className={styles.mainContainer}>
+      <div className={styles.pageWrapper}>
+        <header className={styles.header}>
+          <h1 className={styles.headerTitle}>Bem-vindo ao Proftest</h1>
+          <p className={styles.headerSub}>Selecione uma opção abaixo para gerenciar seus recursos.</p>
+        </header>
+
+        <div className={styles.cardsGrid}>
+          <Link href="/questions" className={styles.card}>
+            <div className={styles.cardIcon}>
+              <ListTodo size={40} />
+            </div>
+            <h2 className={styles.cardTitle}>Gerenciamento de Questões</h2>
+            <p className={styles.cardDesc}>
+              Crie, edite e organize questões de múltipla escolha com opções customizáveis.
+            </p>
+          </Link>
+
+          <Link href="/tests" className={styles.card}>
+            <div className={styles.cardIcon}>
+              <FileText size={40} />
+            </div>
+            <h2 className={styles.cardTitle}>Gerenciamento de Provas</h2>
+            <p className={styles.cardDesc}>
+              Monte exames baseados no seu banco de questões e gere PDFs exportáveis.
+            </p>
+          </Link>
+        </div>
+      </div>
+    </div>
   )
 }

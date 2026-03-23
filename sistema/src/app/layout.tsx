@@ -1,6 +1,9 @@
+import './globals.css';
+import DashboardLayout from '@/components/DashboardLayout';
+
 export const metadata = {
   title: 'Proftest',
-  description: 'Next.js App inside Docker',
+  description: 'A platform to help professors create and correct tests.',
 }
 
 export default function RootLayout({
@@ -10,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <DashboardLayout>
+          {children}
+        </DashboardLayout>
+      </body>
     </html>
   )
 }

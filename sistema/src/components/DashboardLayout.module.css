@@ -1,0 +1,95 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #F4F6F8;
+  padding: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #EAEAEA;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.logoArea {
+  padding: 0 2rem 2rem;
+}
+
+.logoLink {
+  display: block;
+}
+
+.logoTitle {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #0B132B;
+  margin: 0;
+}
+
+.logoSubtitle {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  color: #4A5568;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.navItem:hover {
+  background-color: #E2E8F0;
+}
+
+.navItemActive {
+  background-color: #FFFFFF;
+  color: #0B132B;
+  border-left: 4px solid #0B132B;
+  font-weight: 700;
+}
+
+.mainContent {
+  flex: 1;
+  margin-left: 250px;
+  padding: 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.pageFooter {
+  border-top: 1px solid #EAEAEA;
+  padding-top: 1.5rem;
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #A0AEC0;
+}
+.footerLinks {
+  display: flex;
+  gap: 1.5rem;
+}
+.footerLink {
+  cursor: pointer;
+}
+.footerLink:hover {
+  color: #0B132B;
+}

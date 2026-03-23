@@ -1,24 +1,28 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { ExamTest, TestQuestionConfig, IdentifierStyle } from '../../domain/Test';
+import styles from './page.module.css';
 import { Question } from '../../domain/QuestionBank';
+import { ExamTest, TestQuestionConfig, IdentifierStyle } from '../../domain/Test';
+import { Eye, LayoutGrid, List, Pencil, Trash2, Download, Printer } from 'lucide-react';
 
 export default function ManageTestsPage() {
   const [tests, setTests] = useState<ExamTest[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
-  
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Form State
   const [editingId, setEditingId] = useState<string | null>(null);
-  
+  const [title, setTitle] = useState('');
+  const [selectedQuestions, setSelectedQuestions] = useState<TestQuestionConfig[]>([]);
+
+  // Pdf Modal State
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-  const [pdfTestId, setPdfTestId] = useState<string>('');
-  const [pdfAmount, setPdfAmount] = useState(1);
+  const [pdfTestId, setPdfTestId] = useState<string | null>(null);
+  const [pdfAmount, setPdfAmount] = useState<number>(1);
   const [pdfClassTitle, setPdfClassTitle] = useState('');
   const [pdfProfessorName, setPdfProfessorName] = useState('');
   const [pdfDate, setPdfDate] = useState('');
-
-  const [title, setTitle] = useState('');
-  const [selectedQuestions, setSelectedQuestions] = useState<TestQuestionConfig[]>([]);
 
   useEffect(() => {
     fetchTests();
@@ -37,24 +41,22 @@ export default function ManageTestsPage() {
     setQuestions(data);
   };
 
-  const handleAddQuestionToTest = (questionId: string) => {
-    if (!selectedQuestions.find(q => q.questionId === questionId)) {
-      setSelectedQuestions([...selectedQuestions, { questionId, identifierStyle: 'letters' }]);
+  const handleToggleQuestion = (id: string, style: IdentifierStyle = 'letters') => {
+    const exists = selectedQuestions.find(q => q.questionId === id);
+    if (exists) {
+      setSelectedQuestions(selectedQuestions.filter(q => q.questionId !== id));
+    } else {
+      setSelectedQuestions([...selectedQuestions, { questionId: id, identifierStyle: style }]);
     }
   };
 
-  const handleRemoveQuestionFromTest = (questionId: string) => {
-    setSelectedQuestions(selectedQuestions.filter(q => q.questionId !== questionId));
+  const handleChangeQuestionStyle = (id: string, style: IdentifierStyle) => {
+    setSelectedQuestions(selectedQuestions.map(q => q.questionId === id ? { ...q, identifierStyle: style } : q));
   };
 
-  const handleStyleChange = (questionId: string, style: IdentifierStyle) => {
-    setSelectedQuestions(selectedQuestions.map(q => 
-      q.questionId === questionId ? { ...q, identifierStyle: style } : q
-    ));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if(e) e.preventDefault();
+    if(!title) return;
     const payload = { title, questions: selectedQuestions };
     
     if (editingId) {
@@ -76,41 +78,17 @@ export default function ManageTestsPage() {
     fetchTests();
   };
 
-  const handleEdit = (test: ExamTest) => {
-    setEditingId(test.id);
-    setTitle(test.title);
-    setSelectedQuestions([...test.questions]);
+  const handleEdit = (t: ExamTest) => {
+    setEditingId(t.id);
+    setTitle(t.title);
+    setSelectedQuestions(t.questions.map(q => ({ ...q })));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     await fetch(`/api/tests/${id}`, { method: 'DELETE' });
     fetchTests();
-  };
-
-  const openPdfModal = (testId: string) => {
-    setPdfTestId(testId);
-    setPdfAmount(1);
-    setPdfClassTitle('');
-    setPdfProfessorName('');
-    setPdfDate('');
-    setIsPdfModalOpen(true);
-  };
-
-  const closePdfModal = () => {
-    setIsPdfModalOpen(false);
-    setPdfTestId('');
-  };
-
-  const handleGeneratePdf = () => {
-    const query = new URLSearchParams({
-      amount: pdfAmount.toString(),
-      classTitle: pdfClassTitle,
-      professorName: pdfProfessorName,
-      date: pdfDate
-    }).toString();
-    
-    window.location.href = `/api/tests/${pdfTestId}/generate?${query}`;
-    closePdfModal();
   };
 
   const handleCancelEdit = () => {
@@ -119,168 +97,223 @@ export default function ManageTestsPage() {
     setSelectedQuestions([]);
   };
 
-  const getQuestionDetails = (id: string) => questions.find(q => q.id === id);
+  const openPdfModal = (testId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPdfTestId(testId);
+    setIsPdfModalOpen(true);
+  };
+
+  const closePdfModal = () => {
+    setIsPdfModalOpen(false);
+    setPdfTestId(null);
+    setPdfAmount(1);
+    setPdfClassTitle('');
+    setPdfProfessorName('');
+    setPdfDate('');
+  };
+
+  const handleGeneratePdf = () => {
+    if (!pdfTestId) return;
+    
+    const params = new URLSearchParams({
+      amount: pdfAmount.toString(),
+      classTitle: pdfClassTitle,
+      professorName: pdfProfessorName,
+      date: pdfDate
+    });
+    
+    window.location.href = `/api/tests/${pdfTestId}/generate?${params.toString()}`;
+    closePdfModal();
+  };
 
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '900px', margin: '0 auto' }}>
-      <h1>Manage Tests</h1>
-      <p>Create tests from available questions in your bank.</p>
+    <div className={styles.container}>
+      <main className={styles.mainContent}>
+        <header className={styles.header}>
+          <h2 className={styles.headerTitle}>Gerenciamento de Provas</h2>
+          <button className={styles.btnPrimary} onClick={handleCancelEdit}>Nova Prova</button>
+        </header>
 
-      <section style={{ border: '1px solid #ccc', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem' }}>
-        <h2>{editingId ? 'Edit Test' : 'Create New Test'}</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem' }}>Test Title:</label>
-            <input
-              type="text"
+        <section className={styles.formSection}>
+          <div className={styles.leftColumn}>
+            <div className={styles.sectionTitle}>TÍTULO DA PROVA</div>
+            <textarea
+              className={styles.textarea}
+              placeholder="Digite aqui o título da avaliação..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
-              style={{ width: '100%', padding: '0.5rem' }}
+              style={{ minHeight: '60px' }}
             />
-          </div>
 
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ marginBottom: '0.5rem' }}>Available Questions</h3>
-              <ul style={{ listStyle: 'none', padding: 0, maxHeight: '300px', overflowY: 'auto', border: '1px solid #eee' }}>
-                {questions.map(q => (
-                  <li key={q.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', borderBottom: '1px solid #eee' }}>
-                    <span style={{ fontSize: '0.9rem' }}>{q.description}</span>
-                    <button type="button" onClick={() => handleAddQuestionToTest(q.id)} disabled={!!selectedQuestions.find(sq => sq.questionId === q.id)} style={{ cursor: 'pointer' }}>
-                      Add
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            <div className={styles.altsHeader}>
+              <div className={styles.sectionTitle}>SELECIONAR QUESTÕES ({selectedQuestions.length} inclusas)</div>
+              <span className={styles.altsHint}>Selecione as questões para a prova no checkbox lateral</span>
             </div>
 
-            <div style={{ flex: 1 }}>
-              <h3 style={{ marginBottom: '0.5rem' }}>Selected Questions</h3>
-              {selectedQuestions.length === 0 && <p style={{ fontSize: '0.9rem', color: '#666' }}>No questions selected.</p>}
-              <ul style={{ listStyle: 'none', padding: 0 }}>
-                {selectedQuestions.map(sq => {
-                  const qInfo = getQuestionDetails(sq.questionId);
-                  return (
-                    <li key={sq.questionId} style={{ padding: '0.8rem', background: '#f9f9f9', marginBottom: '0.5rem', borderRadius: '4px' }}>
-                      <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>{qInfo?.description || 'Unknown Question'}</p>
+            <div className={styles.alternativesList} style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {questions.length === 0 ? (
+                <p style={{color: '#A0AEC0', fontSize: '0.9rem', fontStyle: 'italic', marginTop: '1rem'}}>Nenhuma questão no banco.</p>
+              ) : questions.map(q => {
+                const selected = selectedQuestions.find(sq => sq.questionId === q.id);
+                const isSelected = !!selected;
+
+                return (
+                  <div key={q.id} className={`${styles.alternativeBox} ${isSelected ? styles.alternativeBoxActive : ''}`}>
+                    <div className={styles.checkboxContainer}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={() => handleToggleQuestion(q.id)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0B132B' }}
+                      />
+                    </div>
+                    <div className={styles.altContent} style={{ cursor: 'pointer' }} onClick={() => handleToggleQuestion(q.id)}>
+                      <div className={styles.altDesc}>{q.description}</div>
                       
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <select 
-                          value={sq.identifierStyle} 
-                          onChange={(e) => handleStyleChange(sq.questionId, e.target.value as IdentifierStyle)}
-                        >
-                          <option value="letters">Letters (a, b, c...)</option>
-                          <option value="powersOf2">Powers of 2 (1, 2, 4, 8...)</option>
-                        </select>
-                        <button type="button" onClick={() => handleRemoveQuestionFromTest(sq.questionId)} style={{ cursor: 'pointer', color: 'red' }}>Remove</button>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                      {isSelected && (
+                        <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={(e)=>e.stopPropagation()}>
+                          <label style={{fontSize: '0.75rem', fontWeight: 700, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.05em'}}>ESTILO DA RESPOSTA:</label>
+                          <select 
+                            value={selected.identifierStyle} 
+                            onChange={(e) => handleChangeQuestionStyle(q.id, e.target.value as IdentifierStyle)}
+                            style={{
+                              padding: '0.4rem', 
+                              borderRadius: '4px', 
+                              border: '1px solid #E2E8F0', 
+                              outline: 'none', 
+                              background: '#E2E8F0',
+                              color: '#333',
+                              fontFamily: 'inherit',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            <option value="letters">Letras (a, b, c...)</option>
+                            <option value="powersOf2">Soma (1, 2, 4, 8...)</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className={styles.actions}>
+              {editingId && <button className={styles.btnCancel} onClick={handleCancelEdit}>Cancelar Edição</button>}
+              <button className={styles.btnPrimary} onClick={() => handleSubmit()}>{editingId ? 'Salvar Alterações' : 'Salvar Nova Prova'}</button>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.bankSection}>
+          <div className={styles.bankHeader}>
+            <div>
+              <h2 className={styles.bankTitle}>Banco de Provas</h2>
+              <p className={styles.bankSub}>Provas recentemente editadas no projeto</p>
+            </div>
+            <div className={styles.viewToggles}>
+              <button 
+                className={`${styles.viewToggleBtn} ${viewMode === 'grid' ? styles.viewToggleBtnActive : ''}`}
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid size={18} />
+              </button>
+              <button 
+                className={`${styles.viewToggleBtn} ${viewMode === 'list' ? styles.viewToggleBtnActive : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                <List size={18} />
+              </button>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <button type="submit" disabled={selectedQuestions.length === 0} style={{ padding: '0.75rem 1.5rem', background: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-              {editingId ? 'Save Changes' : 'Create Test'}
-            </button>
-            {editingId && (
-              <button type="button" onClick={handleCancelEdit} style={{ padding: '0.75rem 1.5rem', background: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                Cancel Edit
-              </button>
-            )}
-          </div>
-        </form>
-      </section>
-
-      <section>
-        <h2>Test List ({tests.length})</h2>
-        {tests.length === 0 ? (
-          <p>No tests created yet.</p>
-        ) : (
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {tests.map((test) => (
-              <li key={test.id} style={{ border: '2px solid #ccc', padding: '1rem', marginBottom: '2rem', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                  <h3 style={{ margin: 0 }}>{test.title}</h3>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => openPdfModal(test.id)} style={{ padding: '0.25rem 0.5rem', cursor: 'pointer', background: '#e3f2fd', border: '1px solid #bbdefb', color: '#1976d2' }}>Generate PDFs</button>
-                    <button onClick={() => handleEdit(test)} style={{ padding: '0.25rem 0.5rem', cursor: 'pointer' }}>Edit</button>
-                    <button onClick={() => handleDelete(test.id)} style={{ padding: '0.25rem 0.5rem', cursor: 'pointer', background: '#ffebee', border: '1px solid #ffcdd2', color: 'red' }}>Delete</button>
+          <div className={viewMode === 'grid' ? styles.cardsGrid : styles.cardsList}>
+            {tests.map((t) => (
+              <div key={t.id} className={styles.card} onClick={() => handleEdit(t)}>
+                <div className={styles.cardId}>ID #{t.id.split('-')[0]}</div>
+                <div className={styles.cardDesc}>{t.title}</div>
+                <div className={styles.cardFooter}>
+                  <span className={styles.cardDate}>{t.questions.length} Questões</span>
+                  <div className={styles.cardActions}>
+                    <button className={styles.iconBtn} onClick={(e) => openPdfModal(t.id, e)} title="Gerar PDFs">
+                      <Printer size={16} />
+                    </button>
+                    <button className={styles.iconBtn} onClick={(e) => { e.stopPropagation(); handleEdit(t); }} title="Editar Prova">
+                      <Pencil size={16} />
+                    </button>
+                    <button className={styles.iconBtn} onClick={(e) => handleDelete(t.id, e)} title="Excluir">
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
-
-                <div style={{ marginTop: '1.5rem', borderTop: '1px dashed #ddd', paddingTop: '1rem' }}>
-                  <h4 style={{ color: '#555' }}>Preview:</h4>
-                  {test.questions.map((tq, index) => {
-                    const q = getQuestionDetails(tq.questionId);
-                    if (!q) return <p key={index}>Question deleted.</p>;
-                    
-                    return (
-                      <div key={index} style={{ marginBottom: '1.5rem', padding: '1rem', background: '#fff', border: '1px solid #eee', borderRadius: '6px' }}>
-                        <p style={{ fontWeight: 'bold' }}>{index + 1}. {q.description}</p>
-                        <ul style={{ listStyle: 'none', paddingLeft: '1rem' }}>
-                          {q.answers.map((ans, i) => {
-                            const bullet = tq.identifierStyle === 'letters' ? `${String.fromCharCode(97 + i)})` : `${Math.pow(2, i)})`;
-                            return (
-                              <li key={i} style={{ marginBottom: '0.25rem' }}>
-                                {bullet} {ans.description}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                        
-                        <div style={{ marginTop: '1rem', padding: '1rem', border: '1px dashed #999', background: '#fafafa', display: 'inline-block' }}>
-                          {tq.identifierStyle === 'letters' ? (
-                            <strong>Selected Letters: [ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]</strong>
-                          ) : (
-                            <strong>Sum of alternatives: [ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]</strong>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </li>
+              </div>
             ))}
-          </ul>
-        )}
-      </section>
+          </div>
 
-      {isPdfModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', padding: '2rem', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
-            <h3 style={{ marginTop: 0 }}>Generate PDFs</h3>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Number of PDFs (unique variations):</label><br />
-              <input type="number" min="1" value={pdfAmount} onChange={(e) => setPdfAmount(Number(e.target.value))} style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
-            </div>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Class Title:</label><br />
-              <input type="text" value={pdfClassTitle} onChange={(e) => setPdfClassTitle(e.target.value)} placeholder="e.g. Introduction to Programming" style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
-            </div>
+          {tests.length === 0 && (
+             <p style={{color: '#A0AEC0', padding: '2rem 0', textAlign: 'center'}}>Nenhuma prova adicionada ainda.</p>
+          )}
+        </section>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Professor Name:</label><br />
-              <input type="text" value={pdfProfessorName} onChange={(e) => setPdfProfessorName(e.target.value)} placeholder="e.g. Prof. Alan Turing" style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
-            </div>
+        {/* PDF Generation Modal */}
+        {isPdfModalOpen && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <h3 className={styles.modalTitle}>Gerar Documentos (PDF)</h3>
+              
+              <div className={styles.modalInputGroup}>
+                <label className={styles.modalLabel}>Qtd. de Provas (Variações):</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  className={styles.modalInput}
+                  value={pdfAmount} 
+                  onChange={e => setPdfAmount(parseInt(e.target.value) || 1)} 
+                />
+              </div>
+              
+              <div className={styles.modalInputGroup}>
+                <label className={styles.modalLabel}>Título da Disciplina:</label>
+                <input 
+                  type="text" 
+                  className={styles.modalInput}
+                  value={pdfClassTitle} 
+                  onChange={e => setPdfClassTitle(e.target.value)} 
+                  placeholder="Ex: Introdução à Programação"
+                />
+              </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Date:</label><br />
-              <input type="date" value={pdfDate} onChange={(e) => setPdfDate(e.target.value)} style={{ width: '100%', padding: '0.5rem', boxSizing: 'border-box' }} />
-            </div>
+              <div className={styles.modalInputGroup}>
+                <label className={styles.modalLabel}>Nome do Professor:</label>
+                <input 
+                  type="text" 
+                  className={styles.modalInput}
+                  value={pdfProfessorName} 
+                  onChange={e => setPdfProfessorName(e.target.value)} 
+                  placeholder="Ex: Prof. Alan Turing"
+                />
+              </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-              <button onClick={closePdfModal} style={{ padding: '0.5rem 1rem', cursor: 'pointer', background: '#e0e0e0', border: 'none', borderRadius: '4px' }}>Cancel</button>
-              <button onClick={handleGeneratePdf} style={{ padding: '0.5rem 1rem', cursor: 'pointer', background: '#2196f3', color: 'white', border: 'none', borderRadius: '4px' }}>Download Zip</button>
+              <div className={styles.modalInputGroup}>
+                <label className={styles.modalLabel}>Data da Aplicação:</label>
+                <input 
+                  type="date" 
+                  className={styles.modalInput}
+                  value={pdfDate} 
+                  onChange={e => setPdfDate(e.target.value)} 
+                />
+              </div>
+
+              <div className={styles.actions} style={{ marginTop: '2rem' }}>
+                <button className={styles.btnCancel} onClick={closePdfModal}>Cancelar</button>
+                <button className={styles.btnPrimary} onClick={handleGeneratePdf} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <Download size={16} color="#fff" /> Baixar (.zip)
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </main>
+        )}
+      </main>
+    </div>
   );
 }

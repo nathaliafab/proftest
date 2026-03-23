@@ -40,7 +40,7 @@ export class PdfGenerationService {
         // Add Header
         doc.fontSize(20).text(header.classTitle, { align: 'center' });
         doc.fontSize(14).text(`Professor: ${header.professorName}`, { align: 'center' });
-        doc.text(`Date: ${header.date}`, { align: 'center' });
+        doc.text(`Data: ${header.date}`, { align: 'center' });
         doc.moveDown(2);
 
         // Add Questions
@@ -63,16 +63,16 @@ export class PdfGenerationService {
             
             doc.moveDown(1);
             if (style === 'powersOf2') {
-                doc.fontSize(12).text('SUM: __________________', { indent: 20 });
+                doc.fontSize(12).text('Somatório: __________________', { indent: 20 });
             } else {
-                doc.fontSize(12).text('ANSWER: __________________', { indent: 20 });
+                doc.fontSize(12).text('Resposta: __________________', { indent: 20 });
             }
             doc.moveDown(1);
         });
 
         // Add Name and CPF form at the bottom of the last page
         doc.moveDown(2);
-        doc.fontSize(12).text('Name: _____________________________________________________');
+        doc.fontSize(12).text('Nome: _____________________________________________________');
         doc.moveDown(1);
         doc.text('CPF:  _____________________________________________________');
 
@@ -85,7 +85,7 @@ export class PdfGenerationService {
             doc.page.margins.bottom = 0;
             
             doc.fontSize(10).text(
-                `Test Number: ${i}`,
+                `Prova nº ${i}`,
                 50,
                 doc.page.height - 30,
                 { align: 'center', width: doc.page.width - 100, lineBreak: false }

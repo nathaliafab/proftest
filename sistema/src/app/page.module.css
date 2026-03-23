@@ -1,0 +1,80 @@
+.mainContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #FAFAFA;
+}
+
+.pageWrapper {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.header {
+  text-align: center;
+}
+
+.headerTitle {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #0B132B;
+  margin-bottom: 0.8rem;
+}
+
+.headerSub {
+  font-size: 1.1rem;
+  color: #4A5568;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  border-bottom: 4px solid transparent;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  border-bottom: 4px solid #0B132B;
+}
+
+.cardIcon {
+  background: #F4F6F8;
+  padding: 1.5rem;
+  border-radius: 50%;
+  color: #0B132B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0B132B;
+}
+
+.cardDesc {
+  font-size: 0.95rem;
+  color: #4A5568;
+  line-height: 1.5;
+}

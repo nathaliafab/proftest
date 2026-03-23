@@ -92,29 +92,6 @@ export default function ManageQuestionsPage() {
 
   return (
     <div className={styles.container}>
-      <aside className={styles.sidebar}>
-        <div className={styles.logoArea}>
-          <h1 className={styles.logoTitle}>Proftest</h1>
-        </div>
-        <nav className={styles.nav}>
-          <div className={`${styles.navItem} ${styles.navItemActive}`}>
-            <ListTodo size={20} />
-            Questões
-          </div>
-          <div className={styles.navItem}>
-            <FileText size={20} />
-            Provas
-          </div>
-          <div className={styles.navItem}>
-            <Printer size={20} />
-            Impressão
-          </div>
-          <div className={styles.navItem}>
-            <BarChart2 size={20} />
-            Correção
-          </div>
-        </nav>
-      </aside>
 
       <main className={styles.mainContent}>
         <header className={styles.header}>
@@ -245,10 +222,6 @@ export default function ManageQuestionsPage() {
           )}
 
         </section>
-
-        <footer className={styles.pageFooter}>
-          <span>© 2026 Proftest</span>
-        </footer>
       </main>
     </div>
   );
