@@ -12,22 +12,23 @@
   },
   "dependencies": {
     "@libsql/client": "^0.14.0",
+    "adm-zip": "^0.5.10",
     "drizzle-orm": "^0.39.0",
+    "lucide-react": "^1.0.0",
     "next": "latest",
+    "pdfkit": "^0.15.0",
     "react": "latest",
     "react-dom": "latest",
-    "uuid": "^9.0.1",
-    "adm-zip": "^0.5.10",
-    "pdfkit": "^0.15.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.5",
     "@types/jest": "latest",
     "@types/node": "latest",
+    "@types/pdfkit": "^0.13.4",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@types/uuid": "^9.0.8",
-    "@types/adm-zip": "^0.5.5",
-    "@types/pdfkit": "^0.13.4",
     "drizzle-kit": "^0.30.0",
     "jest": "latest",
     "jest-cucumber": "latest",
