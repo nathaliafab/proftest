@@ -22,7 +22,7 @@ defineFeature(feature, (test) => {
   });
 
   const generateGiven = (given: any) => {
-    given(/^a test exists with title "(.*)" and style "(.*)" containing a question "(.*)" with answers:$/, async (title, style, qDesc, answersTable) => {
+    given(/^a test exists with title "(.*)" and style "(.*)" containing a question "(.*)" with answers:$/, async (title: string, style: string, qDesc: string, answersTable: any) => {
       const answers = answersTable.map((row: any) => ({
         description: row.description,
         isCorrect: row.isCorrect === 'true'
@@ -36,7 +36,7 @@ defineFeature(feature, (test) => {
   };
 
   const generateWhen = (when: any) => {
-    when(/^I request to generate (\d+) PDFs for the test with header details "(.*)", "(.*)", "(.*)"$/, async (amountStr, classTitle, professorName, date) => {
+    when(/^I request to generate (\d+) PDFs for the test with header details "(.*)", "(.*)", "(.*)"$/, async (amountStr: string, classTitle: string, professorName: string, date: string) => {
       const amount = parseInt(amountStr, 10);
       const questionsData = await Promise.all(
         testInstance.questions.map((qConf: any) => questionRepo.getQuestionById(qConf.questionId))
@@ -54,7 +54,7 @@ defineFeature(feature, (test) => {
   };
   
   const generateThenZip = (then: any) => {
-    then(/^I should receive a ZIP file containing (\d+) PDF files$/, (expectedPdfs) => {
+    then(/^I should receive a ZIP file containing (\d+) PDF files$/, (expectedPdfs: string) => {
       expect(resultBuffer).toBeDefined();
       const zip = new AdmZip(resultBuffer);
       const pdfEntries = zip.getEntries().filter(e => e.entryName.endsWith('.pdf'));

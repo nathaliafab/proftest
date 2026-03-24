@@ -31,9 +31,16 @@ export default function ManageQuestionsPage() {
   }, []);
 
   const fetchQuestions = async () => {
-    const res = await fetch('/api/questions');
-    const data = await res.json();
-    setQuestions(data);
+    try {
+      const res = await fetch('/api/questions');
+      const data = await res.json();
+      if (!res.ok) {
+         throw new Error(data.error || 'Failed to fetch questions');
+      }
+      setQuestions(data);
+    } catch(err: any) {
+      alert(err.message);
+    }
   };
 
   const handleAddAnswer = () => {
@@ -48,23 +55,46 @@ export default function ManageQuestionsPage() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!description) return;
+    if (!description) { alert('A descrição é obrigatória'); return; }
 
-    const payload = { description, answers };
+    const validAnswers = answers.filter(a => a.description.trim() !== '');
+    if (validAnswers.length === 0) {
+      alert('A questão deve ter pelo menos uma alternativa.');
+      return;
+    }
+
+    if (!validAnswers.some(a => a.isCorrect)) {
+      alert('A questão deve ter pelo menos uma resposta correta.');
+      return;
+    }
+
+    const payload = { description, answers: validAnswers };
     
+    try {
+    let res;
     if (editingId) {
-      await fetch(`/api/questions/${editingId}`, {
+      res = await fetch(`/api/questions/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      setEditingId(null);
     } else {
-      await fetch('/api/questions', {
+      res = await fetch('/api/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+    }
+
+    const resData = await res.json();
+    if (!res.ok) {
+        throw new Error(resData.error || 'Erro ao salvar questão');
+    }
+
+    if (editingId) setEditingId(null);
+    } catch(err: any) {
+       alert(err.message);
+       return;
     }
     setDescription('');
     setAnswers([{ description: '', isCorrect: false }]);
@@ -80,8 +110,16 @@ export default function ManageQuestionsPage() {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    await fetch(`/api/questions/${id}`, { method: 'DELETE' });
-    fetchQuestions();
+    try {
+      const res = await fetch(`/api/questions/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+         const data = await res.json().catch(() => ({}));
+         throw new Error(data.error || 'Erro ao deletar questão');
+      }
+      fetchQuestions();
+    } catch(err: any) {
+       alert(err.message);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -157,20 +195,6 @@ export default function ManageQuestionsPage() {
               <h3 className={styles.propTitle}>Propriedades</h3>
               <label className={styles.propLabel}>Pontuação</label>
               <input type="number" className={styles.propInput} defaultValue="1.0" step="0.1" />
-            </div>
-
-            <div className={styles.previewBox}>
-              <div className={styles.previewHeader}>
-                <Eye size={20} color="#0B132B" />
-                <div>
-                  <h4 className={styles.previewHeaderTitle}>Visualização Rápida</h4>
-                  <p className={styles.previewHeaderSub}>Simulação do aluno</p>
-                </div>
-              </div>
-              <p className={styles.previewText}>
-                Visualize como esta questão aparecerá na folha de exame final antes de publicar.
-              </p>
-              <button className={styles.btnOutline}>Ver Preview PDF</button>
             </div>
           </div>
         </section>

@@ -30,9 +30,14 @@ export default function ManageTestsPage() {
   }, []);
 
   const fetchTests = async () => {
-    const res = await fetch('/api/tests');
-    const data = await res.json();
-    setTests(data);
+    try {
+      const res = await fetch('/api/tests');
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Failed to fetch tests');
+      setTests(data);
+    } catch(err: any) {
+      alert(err.message);
+    }
   };
 
   const fetchQuestions = async () => {
@@ -56,26 +61,40 @@ export default function ManageTestsPage() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if(e) e.preventDefault();
-    if(!title) return;
+    if(!title) { alert('O título é obrigatório'); return; }
+    
+    // Validate we have at least one question mapped
+    if (selectedQuestions.length === 0) {
+      alert('A prova deve ter pelo menos uma questão selecionada');
+      return;
+    }
+
     const payload = { title, questions: selectedQuestions };
     
-    if (editingId) {
-      await fetch(`/api/tests/${editingId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    try {
+      let res;
+      if (editingId) {
+        res = await fetch(`/api/tests/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch('/api/tests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Erro ao salvar a prova');
       setEditingId(null);
-    } else {
-      await fetch('/api/tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      setTitle('');
+      setSelectedQuestions([]);
+      fetchTests();
+    } catch(err: any) {
+       alert(err.message);
     }
-    setTitle('');
-    setSelectedQuestions([]);
-    fetchTests();
   };
 
   const handleEdit = (t: ExamTest) => {
@@ -87,8 +106,16 @@ export default function ManageTestsPage() {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    await fetch(`/api/tests/${id}`, { method: 'DELETE' });
-    fetchTests();
+    try {
+      const res = await fetch(`/api/tests/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+         const data = await res.json().catch(() => ({}));
+         throw new Error(data.error || 'Erro ao deletar a prova');
+      }
+      fetchTests();
+    } catch(err: any) {
+       alert(err.message);
+    }
   };
 
   const handleCancelEdit = () => {
