@@ -1,23 +1,21 @@
-import './globals.css';
-import DashboardLayout from '@/components/DashboardLayout';
+import "./globals.css";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export const metadata = {
-  title: 'Proftest',
-  description: 'A platform to help professors create and correct tests.',
-}
+	title: "ProfTest",
+	description: "A platform to help professors create and correct tests.",
+};
 
 export default function RootLayout({
-  children,
+	children,
 }: {
-  children: React.ReactNode
+	children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body>
-        <DashboardLayout>
-          {children}
-        </DashboardLayout>
-      </body>
-    </html>
-  )
+	return (
+		<html lang="en">
+			<body>
+				<DashboardLayout>{children}</DashboardLayout>
+			</body>
+		</html>
+	);
 }

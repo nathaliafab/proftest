@@ -1,5 +1,5 @@
 {
-  "name": "proftest",
+  "name": "ProfTest",
   "description": "A platform to help professors create and correct tests for their students.",
   "version": "0.1.0",
   "private": true,
@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "lint:all": "bash check-all.sh",
+    "biome": "biome check .",
+    "knip": "knip"
   },
   "dependencies": {
     "@libsql/client": "^0.14.0",
@@ -22,6 +25,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "latest",
     "@types/adm-zip": "^0.5.5",
     "@types/jest": "latest",
     "@types/node": "latest",
@@ -32,6 +36,7 @@
     "drizzle-kit": "^0.30.0",
     "jest": "latest",
     "jest-cucumber": "latest",
+    "knip": "latest",
     "ts-jest": "latest",
     "typescript": "latest"
   }

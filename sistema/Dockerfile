@@ -1,18 +1,21 @@
 FROM node:lts-alpine
 
+# 1. Instala bash e dependências do Python
+RUN apk add --no-cache bash python3 py3-pip build-base python3-dev
+
+# 2. Instala o Semgrep via pip
+# O --break-system-packages é necessário nas versões novas do Alpine/Python 
+# para instalar globalmente sem venv.
+RUN pip3 install semgrep --break-system-packages
+
 WORKDIR /app
 
-# Copy package.json to leverage Docker cache for dependencies
 COPY package.json ./
-
-# Install dependencies (since we don't have a package-lock.json locally yet, npm install will generate one in the container)
 RUN npm install
 
-# Copy the rest of the application code
 COPY . .
+RUN chmod +x check-all.sh
 
-# Expose port 3000
 EXPOSE 3000
 
-# Start the Next.js development server
 CMD ["npm", "run", "dev"]
