@@ -11,14 +11,23 @@ export class PdfGenerationService {
     header: { classTitle: string; professorName: string; date: string }
   ): Promise<Buffer> {
     const zip = new AdmZip();
-    let csvContent = 'Test Number,Answers\n';
+    
+    // First, let's form the CSV header. Since we group by question now:
+    let csvHeader = 'Test Number';
+    if (questionsData.length > 0) {
+      for (let i = 1; i <= questionsData.length; i++) {
+        csvHeader += `,q${i}`;
+      }
+    } else {
+      csvHeader += ',Answers';
+    }
+    let csvContent = csvHeader + '\n';
 
     for (let i = 1; i <= amount; i++) {
         // Shuffle questions
         const shuffledQuestions = [...questionsData].sort(() => Math.random() - 0.5);
         
-        // Arrays to hold correct answers for the CSV
-        const testAnswers: string[] = [];
+        let testRow = `${i}`;
 
         const doc = new PDFDocument({ margin: 50, bufferPages: true });
         // Set font to Times New Roman (PDFKit uses Times-Roman built-in font)
@@ -53,13 +62,25 @@ export class PdfGenerationService {
             const qConfig = testData.questions.find(c => c.questionId === q.id);
             const style = qConfig ? qConfig.identifierStyle : 'letters';
 
+            const questionAnswers: string[] = [];
+
             shuffledAnswers.forEach((ans, aIndex) => {
                 const letter = style === 'powersOf2' ? Math.pow(2, aIndex).toString() : String.fromCharCode(97 + aIndex); // 'a' + aIndex
                 doc.fontSize(11).text(`${letter}) ${ans.description}`, { indent: 20 });
                 if (ans.isCorrect) {
-                  testAnswers.push(letter);
+                  questionAnswers.push(letter);
                 }
             });
+            
+            // Push grouped correct answers for this question to the CSV row
+            // Enclose in quotes if multiple
+            if (questionAnswers.length > 1) {
+              testRow += `,"${questionAnswers.join(',')}"`;
+            } else if (questionAnswers.length === 1) {
+              testRow += `,${questionAnswers[0]}`;
+            } else {
+              testRow += `,`;
+            }
             
             doc.moveDown(1);
             if (style === 'powersOf2') {
@@ -97,7 +118,7 @@ export class PdfGenerationService {
         doc.end();
         await docPromise;
 
-        csvContent += `${i},"${testAnswers.join(', ')}"\n`;
+        csvContent += `${testRow}\n`;
     }
 
     zip.addFile('answers.csv', Buffer.from(csvContent, 'utf8'));

@@ -64,7 +64,7 @@ defineFeature(feature, (test) => {
       const csvEntry = zip.getEntry('answers.csv');
       expect(csvEntry).not.toBeNull();
       const csvContent = zip.readAsText(csvEntry!);
-      expect(csvContent).toContain('Test Number,Answers');
+      expect(csvContent).toContain('Test Number,q1');
     });
   });
 });

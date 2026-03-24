@@ -35,6 +35,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <FileText size={20} />
             Provas
           </Link>
+          <Link 
+            href="/correction" 
+            className={`${styles.navItem} ${pathname === '/correction' ? styles.navItemActive : ''}`}
+          >
+            <BarChart2 size={20} />
+            Correção
+          </Link>
         </nav>
       </aside>
 
