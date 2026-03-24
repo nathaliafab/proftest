@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
+    "test:e2e": "jest --config jest.e2e.config.js --runInBand",
     "lint:all": "bash check-all.sh",
     "biome": "biome check .",
     "knip": "knip"
@@ -32,11 +33,13 @@
     "@types/pdfkit": "^0.13.4",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@types/selenium-webdriver": "latest",
     "@types/uuid": "^9.0.8",
     "drizzle-kit": "^0.30.0",
     "jest": "latest",
     "jest-cucumber": "latest",
     "knip": "latest",
+    "selenium-webdriver": "latest",
     "ts-jest": "latest",
     "typescript": "latest"
   }

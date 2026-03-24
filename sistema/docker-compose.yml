@@ -6,12 +6,19 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Mount the current directory to /app in the container for hot-reloading
       - .:/app
-      # Create anonymous volumes so the container's build artifacts and node_modules aren't overwritten by the host
       - /app/node_modules
       - /app/.next
     environment:
       - NODE_ENV=development
-      # Use polling for hot reloading to ensure it works across different host OS file systems
       - WATCHPACK_POLLING=true
+    command: npm run dev
+    depends_on:
+      - selenium-hub
+  selenium-hub:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "4444:4444"
+    shm_size: 2g
+    environment:
+      - SE_NODE_MAX_SESSIONS=4
