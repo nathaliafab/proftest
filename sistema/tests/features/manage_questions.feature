@@ -26,3 +26,15 @@ Feature: Manage Multiple Choice Questions
     Given I have a question bank with a question "What is the capital of France?"
     When I remove the question "What is the capital of France?"
     Then the question bank should contain 0 questions
+
+  Scenario: Add a question with multiple correct answers
+    Given I have a question bank
+    When I add a question with description "Which of these are programming languages?" and answers:
+      | description | isCorrect |
+      | Python      | true      |
+      | HTML        | false     |
+      | Java        | true      |
+    Then the question bank should contain 1 question
+    And the first question should have the description "Which of these are programming languages?"
+    And the first question should have 3 answers
+    And 2 of the answers should be marked as correct

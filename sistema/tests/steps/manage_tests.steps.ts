@@ -96,4 +96,53 @@ defineFeature(feature, (test) => {
       expect(t).toBeUndefined();
     });
   });
+
+
+  test('Create a test with multiple questions', ({ given, and, when, then }) => {
+    given(/^there is a question "(.*)" in the database$/, async (description: string) => {
+      await questionRepo.addQuestion({
+        description,
+        answers: [
+          { description: 'Placeholder', isCorrect: true }
+        ]
+      });
+    });
+
+    and(/^there is a question "(.*)" in the database$/, async (description: string) => {
+      await questionRepo.addQuestion({
+        description,
+        answers: [
+          { description: 'Placeholder2', isCorrect: true }
+        ]
+      });
+    });
+
+    when(/^I create a test titled "(.*)" with both questions using "(.*)" style$/, async (title: string, style: any) => {
+      const q1 = await questionRepo.getQuestionByDescription("Which planet is known as the Red Planet?");
+      const q2 = await questionRepo.getQuestionByDescription("What is the largest ocean?");
+      if (q1 && q2) {
+        await testRepo.addTest(title, [
+          { questionId: q1.id, identifierStyle: style },
+          { questionId: q2.id, identifierStyle: style }
+        ]);
+      }
+    });
+
+    then(/^the system should have a test titled "(.*)" with (\d+) questions$/, async (title: string, count: string) => {
+      const t = await testRepo.getTestByTitle(title);
+      expect(t).toBeDefined();
+      expect(t?.questions.length).toBe(parseInt(count, 10));
+    });
+  });
+  test('Create a test without questions', ({ when, then }) => {
+    when(/^I create a test titled "(.*)" with no questions$/, async (title: string) => {
+      await testRepo.addTest(title, []);
+    });
+
+    then(/^the system should have a test titled "(.*)" with (\d+) questions$/, async (title: string, count: string) => {
+      const t = await testRepo.getTestByTitle(title);
+      expect(t).toBeDefined();
+      expect(t?.questions.length).toBe(parseInt(count, 10));
+    });
+  });
 });

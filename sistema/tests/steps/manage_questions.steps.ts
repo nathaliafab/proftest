@@ -17,7 +17,6 @@ defineFeature(feature, (test) => {
 
   test('Add a new multiple choice question', ({ given, when, then, and }) => {
     given('I have a question bank', () => {
-      // Setup done in beforeEach
     });
 
     when(/^I add a question with description "(.*)" and answers:$/, async (description: string, table: Answer[]) => {
@@ -95,6 +94,43 @@ defineFeature(feature, (test) => {
     then(/^the question bank should contain (\d+) questions$/, async (count: string) => {
       const questions = await bank.getQuestions();
       expect(questions.length).toBe(parseInt(count, 10));
+    });
+  });
+
+  test('Add a question with multiple correct answers', ({ given, when, then, and }) => {
+    given('I have a question bank', () => {
+    });
+
+    when(/^I add a question with description "(.*)" and answers:$/, async (description: string, table: Answer[]) => {
+      const answers = table.map((row: any) => ({
+        description: row.description,
+        isCorrect: row.isCorrect === 'true',
+      }));
+      await bank.addQuestion({
+        description,
+        answers,
+      });
+    });
+
+    then(/^the question bank should contain (\d+) question$/, async (count: string) => {
+      const questions = await bank.getQuestions();
+      expect(questions.length).toBe(parseInt(count, 10));
+    });
+
+    and(/^the first question should have the description "(.*)"$/, async (description: string) => {
+      const questions = await bank.getQuestions();
+      expect(questions[0].description).toBe(description);
+    });
+
+    and(/^the first question should have (\d+) answers$/, async (count: string) => {
+      const questions = await bank.getQuestions();
+      expect(questions[0].answers.length).toBe(parseInt(count, 10));
+    });
+
+    and(/^(\d+) of the answers should be marked as correct$/, async (count: string) => {
+      const questions = await bank.getQuestions();
+      const correctAnswers = questions[0].answers.filter((a: any) => a.isCorrect);
+      expect(correctAnswers.length).toBe(parseInt(count, 10));
     });
   });
 });

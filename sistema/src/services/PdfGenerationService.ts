@@ -13,7 +13,7 @@ export class PdfGenerationService {
     const zip = new AdmZip();
     
     // First, let's form the CSV header. Since we group by question now:
-    let csvHeader = 'Test Number';
+    let csvHeader = 'Tipo de Prova';
     if (questionsData.length > 0) {
       for (let i = 1; i <= questionsData.length; i++) {
         csvHeader += `,q${i}`;
@@ -97,7 +97,7 @@ export class PdfGenerationService {
         doc.moveDown(1);
         doc.text('CPF:  _____________________________________________________');
 
-        // Footer for Test Number
+        // Footer for Tipo de Prova
         let pages = doc.bufferedPageRange();
         for (let j = 0; j < pages.count; j++) {
             doc.switchToPage(j);

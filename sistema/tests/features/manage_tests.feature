@@ -19,3 +19,13 @@ Feature: Manage Tests
     Given there is a test titled "Science Exam"
     When I remove the test "Science Exam"
     Then the system should not have a test titled "Science Exam"
+
+  Scenario: Create a test with multiple questions
+    Given there is a question "Which planet is known as the Red Planet?" in the database
+    And there is a question "What is the largest ocean?" in the database
+    When I create a test titled "Complex Science Exam" with both questions using "letters" style
+    Then the system should have a test titled "Complex Science Exam" with 2 questions
+
+  Scenario: Create a test without questions
+    When I create a test titled "Empty Exam" with no questions
+    Then the system should have a test titled "Empty Exam" with 0 questions
