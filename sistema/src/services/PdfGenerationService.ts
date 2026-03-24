@@ -31,9 +31,16 @@ export class PdfGenerationService {
 
 			let testRow = `${i}`;
 
-			const doc = new PDFDocument({ margin: 50, bufferPages: true });
-			// Set font to Times New Roman (PDFKit uses Times-Roman built-in font)
-			doc.font("Times-Roman");
+			const doc = new PDFDocument({
+				margin: 50,
+				bufferPages: true,
+				size: "A4",
+			});
+			// Set font to a modern sans-serif
+			const regularFont = "Helvetica";
+			const boldFont = "Helvetica-Bold";
+
+			doc.font(regularFont);
 
 			const buffers: Buffer[] = [];
 
@@ -48,17 +55,78 @@ export class PdfGenerationService {
 				});
 			});
 
+			const margins = doc.page.margins;
+			const usableWidth = doc.page.width - margins.left - margins.right;
+
 			// Add Header
-			doc.fontSize(20).text(header.classTitle, { align: "center" });
+			const headerTop = doc.y;
 			doc
-				.fontSize(14)
-				.text(`Professor: ${header.professorName}`, { align: "center" });
-			doc.text(`Data: ${header.date}`, { align: "center" });
-			doc.moveDown(2);
+				.font(boldFont)
+				.fontSize(16)
+				.text("AVALIAÇÃO", margins.left, headerTop);
+
+			let currentY = doc.y + 15;
+
+			// Line separator
+			doc
+				.moveTo(margins.left, currentY)
+				.lineTo(margins.left + usableWidth, currentY)
+				.lineWidth(1)
+				.stroke();
+
+			currentY += 15;
+
+			const col1X = margins.left;
+			const col2X = margins.left + usableWidth / 2;
+
+			// Grid Info Row 1
+			doc.font(boldFont).fontSize(8).text("DISCIPLINA: ", col1X, currentY);
+			let labelWidth = doc.widthOfString("DISCIPLINA: ");
+			doc
+				.font(regularFont)
+				.text(header.classTitle, col1X + labelWidth, currentY);
+
+			doc.font(boldFont).text("PROFESSOR: ", col2X, currentY);
+			labelWidth = doc.widthOfString("PROFESSOR: ");
+			doc
+				.font(regularFont)
+				.text(header.professorName, col2X + labelWidth, currentY);
+
+			currentY += 20;
+
+			// Grid Info Row 2
+			doc.font(boldFont).text("DATA: ", col1X, currentY);
+			labelWidth = doc.widthOfString("DATA: ");
+			doc.font(regularFont).text(header.date, col1X + labelWidth, currentY);
+
+			doc.font(boldFont).text("PROVA Nº: ", col2X, currentY);
+			labelWidth = doc.widthOfString("PROVA Nº: ");
+			doc
+				.font(regularFont)
+				.text(i.toString().padStart(2, "0"), col2X + labelWidth, currentY);
+
+			currentY += 20;
+
+			// Bottom Line separator
+			doc
+				.moveTo(margins.left, currentY)
+				.lineTo(margins.left + usableWidth, currentY)
+				.lineWidth(1)
+				.stroke();
+
+			doc.y = currentY + 20;
 
 			// Add Questions
 			shuffledQuestions.forEach((q, qIndex) => {
-				doc.fontSize(12).text(`${qIndex + 1}. ${q.description}`);
+				const qNum = (qIndex + 1).toString().padStart(2, "0") + ". ";
+
+				// Draw question number and text
+				doc
+					.font(boldFont)
+					.fontSize(11)
+					.text(qNum, margins.left, doc.y, { continued: true });
+				doc.font(regularFont).text(q.description);
+				doc.moveDown(0.5);
 
 				// Shuffle answers
 				const shuffledAnswers = [...q.answers].sort(() => Math.random() - 0.5);
@@ -71,13 +139,21 @@ export class PdfGenerationService {
 				shuffledAnswers.forEach((ans, aIndex) => {
 					const letter =
 						style === "powersOf2"
-							? (2 ** aIndex).toString()
-							: String.fromCharCode(97 + aIndex); // 'a' + aIndex
+							? (2 ** aIndex).toString().padStart(2, "0")
+							: String.fromCharCode(65 + aIndex); // 'A' + aIndex
+
+					// Draw circled letter or styled identifier
 					doc
-						.fontSize(11)
-						.text(`${letter}) ${ans.description}`, { indent: 20 });
+						.font(regularFont)
+						.fontSize(10)
+						.text(`${letter})  ${ans.description}`, margins.left + 25, doc.y);
+
 					if (ans.isCorrect) {
-						questionAnswers.push(letter);
+						questionAnswers.push(
+							style === "powersOf2"
+								? (2 ** aIndex).toString()
+								: String.fromCharCode(97 + aIndex),
+						); // CSV expects 'a'
 					}
 				});
 
@@ -92,25 +168,19 @@ export class PdfGenerationService {
 				}
 
 				doc.moveDown(1);
-				if (style === "powersOf2") {
-					doc
-						.fontSize(12)
-						.text("Somatório: __________________", { indent: 20 });
-				} else {
-					doc.fontSize(12).text("Resposta: __________________", { indent: 20 });
-				}
-				doc.moveDown(1);
+
+				// Output Response Box
+				const boxLabel =
+					style === "powersOf2" ? "RESULTADO DA SOMA:" : "RESPOSTA (LETRAS):";
+				doc
+					.font(boldFont)
+					.fontSize(8)
+					.text(boxLabel, margins.left + 25, doc.y + 4);
+				doc.rect(margins.left + 120, doc.y - 12, 40, 16).stroke();
+				doc.moveDown(2);
 			});
 
-			// Add Name and CPF form at the bottom of the last page
-			doc.moveDown(2);
-			doc
-				.fontSize(12)
-				.text("Nome: _____________________________________________________");
-			doc.moveDown(1);
-			doc.text("CPF:  _____________________________________________________");
-
-			// Footer for Tipo de Prova
+			// Footer for Tipo de Prova and Student Info
 			const pages = doc.bufferedPageRange();
 			for (let j = 0; j < pages.count; j++) {
 				doc.switchToPage(j);
@@ -118,11 +188,47 @@ export class PdfGenerationService {
 				const bottomMargin = doc.page.margins.bottom;
 				doc.page.margins.bottom = 0;
 
-				doc.fontSize(10).text(`Prova nº ${i}`, 50, doc.page.height - 30, {
-					align: "center",
-					width: doc.page.width - 100,
-					lineBreak: false,
-				});
+				// Only draw student info on the first page as per the layout
+				if (j === 0) {
+					const footerY = doc.page.height - 120;
+
+					doc
+						.moveTo(margins.left, footerY)
+						.lineTo(margins.left + usableWidth, footerY)
+						.lineWidth(1)
+						.stroke();
+
+					doc
+						.font(boldFont)
+						.fontSize(7)
+						.text("NOME COMPLETO DO ALUNO", margins.left, footerY + 15);
+					doc
+						.moveTo(margins.left, footerY + 40)
+						.lineTo(margins.left + usableWidth / 2 - 20, footerY + 40)
+						.stroke();
+
+					doc.text(
+						"CPF / MATRÍCULA",
+						margins.left + usableWidth / 2,
+						footerY + 15,
+					);
+					doc
+						.moveTo(margins.left + usableWidth / 2, footerY + 40)
+						.lineTo(margins.left + usableWidth, footerY + 40)
+						.stroke();
+				}
+
+				// Draw page info at the very bottom
+				const pageLabelY = doc.page.height - 35;
+				const shortId = testData.id.split("-")[0].toUpperCase();
+				doc.font(boldFont).fontSize(7);
+				doc.text(`IDENTIFICADOR: #${shortId}`, margins.left, pageLabelY);
+				doc.text(
+					`PÁGINA ${j + 1} DE ${pages.count}`,
+					margins.left,
+					pageLabelY,
+					{ align: "right" },
+				);
 
 				doc.page.margins.bottom = bottomMargin;
 			}

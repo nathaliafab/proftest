@@ -231,19 +231,6 @@ export default function ManageQuestionsPage() {
 							</button>
 						</div>
 					</div>
-
-					<div className={styles.rightColumn}>
-						<div className={styles.propBox}>
-							<h3 className={styles.propTitle}>Propriedades</h3>
-							<div className={styles.propLabel}>Pontuação</div>
-							<input
-								type="number"
-								className={styles.propInput}
-								defaultValue="1.0"
-								step="0.1"
-							/>
-						</div>
-					</div>
 				</section>
 
 				<section className={styles.bankSection}>
