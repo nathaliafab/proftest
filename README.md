@@ -75,6 +75,7 @@ You can run the application's automated test suite (Jest and Cucumber scenarios)
 
 ```bash
 docker compose exec web npm test
+docker compose exec web npm test:e2e
 ```
 *(If your service is named differently or you are not using compose locally, you can use `docker exec -it <container_name> npm test`)*
 
